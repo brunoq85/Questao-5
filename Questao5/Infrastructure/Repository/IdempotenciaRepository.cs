@@ -17,22 +17,34 @@ namespace Questao5.Infrastructure.Repository
             _connection = connection;
         }
 
+        // Verifica se a chave de idempotência já existe na tabela
         public async Task<bool> VerificarChaveExistenteAsync(string chaveIdempotencia)
         {
-            var query = $"SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END AS Existe FROM idempotencia WHERE chave_idempotencia = @ChaveIdempotencia";
-            var result = await _connection.QuerySingleAsync<bool>(query, new { ChaveIdempotencia = chaveIdempotencia });
-            return result;
+            var query = "SELECT COUNT(1) FROM idempotencia WHERE chave_idempotencia = @ChaveIdempotencia";
+            var count = await _connection.ExecuteScalarAsync<int>(query, new { ChaveIdempotencia = chaveIdempotencia }, _unitOfWork.Transaction);
+            return count > 0;
         }
 
-        public async Task SalvarResultadoAsync(string chaveIdempotencia, string resultado)
+        // Registra uma nova chave de idempotência na tabela
+        public async Task RegistrarChaveAsync(string chaveIdempotencia, string requisicao)
         {
-            var idempotencia = new Idempotencia(chaveIdempotencia, "", resultado);
+            var query = "INSERT INTO idempotencia (chave_idempotencia, requisicao) VALUES (@ChaveIdempotencia, @Requisicao)";
+            await _connection.ExecuteAsync(query, new { ChaveIdempotencia = chaveIdempotencia, Requisicao = requisicao }, _unitOfWork.Transaction);
+        }
 
+        // Atualiza o resultado associado a uma chave de idempotência
+        public async Task AtualizarResultadoAsync(string chaveIdempotencia, string resultado)
+        {
+            var query = "UPDATE idempotencia SET resultado = @Resultado WHERE chave_idempotencia = @ChaveIdempotencia";
+            await _connection.ExecuteAsync(query, new { Resultado = resultado, ChaveIdempotencia = chaveIdempotencia }, _unitOfWork.Transaction);
+        }
 
-            var query = @"INSERT INTO idempotencia (chave_idempotencia, requisicao, resultado) 
-                          VALUES (@ChaveIdempotencia, @Requisicao, @Resultado)";
-
-            await _connection.ExecuteAsync(query, idempotencia, _unitOfWork.Transaction);
+        // Obtém o resultado associado a uma chave de idempotência
+        public async Task<string> ObterResultadoPorChaveAsync(string chaveIdempotencia)
+        {
+            var query = "SELECT resultado FROM idempotencia WHERE chave_idempotencia = @ChaveIdempotencia";
+            var resultado = await _connection.QuerySingleOrDefaultAsync<string>(query, new { ChaveIdempotencia = chaveIdempotencia }, _unitOfWork.Transaction);
+            return resultado;
         }
     }
 }

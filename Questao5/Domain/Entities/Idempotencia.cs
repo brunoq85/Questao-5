@@ -1,4 +1,6 @@
-﻿namespace Questao5.Domain.Entities
+﻿using Questao5.Domain.Validation;
+
+namespace Questao5.Domain.Entities
 {
     public class Idempotencia
     {
@@ -8,6 +10,9 @@
 
         public Idempotencia(string chaveIdempotencia, string requisicao, string resultado)
         {
+            if (chaveIdempotencia.Length > 37)
+                throw new Exception("A chave deve possui até 37 caracteres.");
+
             ChaveIdempotencia = Guid.NewGuid().ToString();
             Requisicao = requisicao;
             Resultado = resultado;

@@ -14,59 +14,45 @@ public class Movimento
 
     public Movimento() { }
 
-    public Movimento(string idMovimento, string idContaCorrente, DateTime dataMovimento, char tipoMovimento, decimal valor, ContaCorrente? contaCorrente)
+    public Movimento(string idContaCorrente, char tipoMovimento, decimal valor)
     {
-        ValidateDomain(idMovimento, idContaCorrente, dataMovimento, tipoMovimento, valor);
-        contaCorrente.ValidarContaAtiva();
+        ValidateDomain(idContaCorrente, tipoMovimento, valor);
 
-        IdMovimento = idMovimento;
+        IdMovimento = Guid.NewGuid().ToString();
         IdContaCorrente = idContaCorrente;
-        DataMovimento = dataMovimento;
+        DataMovimento = DateTime.Now;
         TipoMovimento = tipoMovimento;
         Valor = valor;
-        ContaCorrente = contaCorrente;
     }
 
-    public void Update(string idMovimento, string idContaCorrente, DateTime dataMovimento, char tipoMovimento, decimal valor)
-    {
-        ValidateDomain(idMovimento, idContaCorrente, dataMovimento, tipoMovimento, valor);
-        ContaCorrente.ValidarContaAtiva();
-    }
-
-    public void ValidarMovimento()
-    {
-        if (string.IsNullOrWhiteSpace(IdContaCorrente))
-        {
-            throw new ArgumentException("A conta corrente é inválida.");
-        }
-
-        ContaCorrente.ValidarContaAtiva();
-
-        if (Valor <= 0)
-        {
-            throw new ArgumentException("O valor do movimento deve ser positivo.");
-        }
-
-        if (TipoMovimento != (char)ETipoMovimento.CREDITO && TipoMovimento != (char)ETipoMovimento.DEBITO)
-        {
-            throw new ArgumentException("Tipo de movimento inválido. Use 'C' para crédito ou 'D' para débito.");
-        }
-    }
-
-    private void ValidateDomain(string idMovimento, string idContaCorrente, DateTime dataMovimento, char tipoMovimento, decimal valor)
+    public Movimento(string idMovimento, string idContaCorrente, DateTime dataMovimento, char tipoMovimento, decimal valor)
     {
         // Validação campo: idMovimento
         DomainValidation.When(string.IsNullOrEmpty(idMovimento), "O identificador do movimento deve ser informado.");
         DomainValidation.When(idMovimento.Length > 37, "O identificador do movimento deve ter até 37 caracteres");
 
+        // Validação campo: dataMovimento
+        DomainValidation.When(dataMovimento < DateTime.Now, "Data inválida");
+
+        ValidateDomain(idContaCorrente, tipoMovimento, valor);
+
+        IdMovimento = idMovimento;
+        IdContaCorrente = idContaCorrente;
+        DataMovimento = DateTime.Now ;
+        TipoMovimento = tipoMovimento;
+        Valor = valor;
+    }  
+
+    private void ValidateDomain(string idContaCorrente, char tipoMovimento, decimal valor)
+    {
         // Validação campo: idContaCorrente
         DomainValidation.When(string.IsNullOrEmpty(idContaCorrente), "O identificador da conta corrente deve ser informado.");
         DomainValidation.When(idContaCorrente.Length > 37, "O identificador da conta corrente deve ter até 37 caracteres");
 
-        // Validação campo: dataMovimento
-        DomainValidation.When(dataMovimento < DateTime.Now, "Data inválida");
-
         // Validação campo: valor
         DomainValidation.When(valor <= 0, "O valor do movimento deve ser positivo.");
+
+        // Validação campo: tipoMovimento
+        DomainValidation.When(tipoMovimento != (char)ETipoMovimento.CREDITO && tipoMovimento != (char)ETipoMovimento.DEBITO, "Tipo de movimento inválido. Use 'C' para crédito ou 'D' para débito.");
     }
 }

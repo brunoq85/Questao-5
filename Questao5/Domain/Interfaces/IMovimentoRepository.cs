@@ -1,4 +1,7 @@
 ﻿using Questao5.Domain.Entities;
+using Questao5.Infrastructure.Database.CommandStore.Requests.Movimento;
+using Questao5.Infrastructure.Database.CommandStore.Responses.Movimento;
+using Questao5.Infrastructure.Database.QueryStore.Responses.Movimento;
 
 namespace Questao5.Domain.Interfaces
 {
@@ -6,10 +9,10 @@ namespace Questao5.Domain.Interfaces
     {
         Task<IEnumerable<Movimento>> GetAllMovimentos();
         Task<Movimento> GetMovimentoById(string idMovimento);
-        Task<IEnumerable<Movimento>> GetMovimentoByIdContaCorrente(string idContaCorrente);
+        Task<IEnumerable<GetMovimentoByIdResponse>> GetMovimentoByIdContaCorrente(string idContaCorrente);
 
-        Task<Movimento> AddMovimento(Movimento movimento);
-        void UpdateMovimento(Movimento movimento);
-        Task<Movimento> DeleteMovimento(string idMovimento);
+        Task<AddMovimentoResponse> AddMovimento(AddMovimentoRequest addMovimentoRequest);
+        Task<UpdateMovimentoResponse> UpdateMovimento(UpdateMovimentoRequest updateMovimentoRequest);
+        Task<DeleteMovimentoResponse> DeleteMovimento(DeleteMovimentoRequest deleteMovimentoRequest);
     }
 }

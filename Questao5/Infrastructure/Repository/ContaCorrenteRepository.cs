@@ -1,6 +1,10 @@
 ﻿using Dapper;
 using Questao5.Domain.Entities;
 using Questao5.Domain.Interfaces;
+using Questao5.Infrastructure.Database.CommandStore.Requests.ContaCorrente;
+using Questao5.Infrastructure.Database.CommandStore.Responses.ContaCorrente;
+using Questao5.Infrastructure.Database.QueryStore.Requests.ContaCorrente;
+using Questao5.Infrastructure.Database.QueryStore.Responses.ContaCorrente;
 using System.Data;
 
 namespace Questao5.Infrastructure.Repository
@@ -16,38 +20,47 @@ namespace Questao5.Infrastructure.Repository
             _connection = connection;
         }
 
-        public async Task<IEnumerable<ContaCorrente>> GetAllContasCorrente()
+        public async Task<IEnumerable<GetContaCorrenteByIdResponse>> GetAllContasCorrente()
         {
             var query = "SELECT * FROM contacorrente";
-            return await _connection.QueryAsync<ContaCorrente>(query, null, _unitOfWork.Transaction);
+            return await _connection.QueryAsync<GetContaCorrenteByIdResponse>(query, null, _unitOfWork.Transaction);
 
         }
 
-        public async Task<ContaCorrente> GetContaCorrenteById(string idContaCorrente)
+        public async Task<GetContaCorrenteByIdResponse> GetContaCorrenteById(GetContaCorrenteByIdRequest getContaCorrenteByIdRequest)
         {
-            var query = "SELECT * FROM contacorrente WHERE idcontacorrente = @idContaCorrente";
-            return await _connection.QuerySingleOrDefaultAsync<ContaCorrente>(query, new { idContaCorrente = idContaCorrente }, _unitOfWork.Transaction);
+            var query = "SELECT * FROM contacorrente WHERE idcontacorrente = @IdContaCorrente";
+
+            var result = await _connection.QueryFirstAsync<GetContaCorrenteByIdResponse>(query, new { IdContaCorrente = getContaCorrenteByIdRequest.IdContaCorrente });
+
+            return result;
         }
 
-        public async Task<ContaCorrente> AddContCorrente(ContaCorrente contaCorrente)
+        public async Task<AddContaCorrenteResponse> AddContaCorrente(AddContaCorrenteRequest addContaCorrenteRequest)
         {
-            if (contaCorrente is null)
-                throw new ArgumentNullException(nameof(contaCorrente));
+            if (addContaCorrenteRequest is null)
+                throw new ArgumentNullException(nameof(addContaCorrenteRequest));
 
             var query = "INSERT INTO contacorrente (idcontacorrente, numero, nome, ativo) VALUES (@IdContaCorrente, @Numero, @Nome, @Ativo)";
 
-            await _connection.ExecuteAsync(query, contaCorrente, _unitOfWork.Transaction);
+            await _connection.ExecuteAsync(query, addContaCorrenteRequest, _unitOfWork.Transaction);
 
-            return contaCorrente;
+            return new AddContaCorrenteResponse
+            {
+                IdContaCorrente = addContaCorrenteRequest.IdContaCorrente,
+                Numero = addContaCorrenteRequest.Numero,
+                Nome = addContaCorrenteRequest.Nome,
+                Ativo = addContaCorrenteRequest.Ativo
+            };
         }
 
-        public async Task<ContaCorrente> DeleteContCorrente(string idContaCorrente)
+        public async Task<DeleteContaCorrenteResponse> DeleteContaCorrente(DeleteContaCorrenteRequest deleteContaCorrenteRequest)
         {
             var querySelect = "SELECT * FROM contacorrente WHERE idcontacorrente = @idContaCorrente";
             var queryDelete = "DELETE FROM contacorrente WHERE idcontacorrente = @idContaCorrente";
 
             // Obter a conta corrente antes de deletar
-            var contaCorrente = await _connection.QuerySingleOrDefaultAsync<ContaCorrente>(querySelect, new { idContaCorrente = idContaCorrente });
+            var contaCorrente = await _connection.QuerySingleOrDefaultAsync<ContaCorrente>(querySelect, new { idContaCorrente = deleteContaCorrenteRequest.IdContaCorrente });
 
             if (contaCorrente == null)
             {
@@ -55,15 +68,29 @@ namespace Questao5.Infrastructure.Repository
             }
 
             // Deletar a conta corrente
-            await _connection.ExecuteAsync(queryDelete, new { idContaCorrente = idContaCorrente }, _unitOfWork.Transaction);
+            await _connection.ExecuteAsync(queryDelete, new { idContaCorrente = deleteContaCorrenteRequest.IdContaCorrente }, _unitOfWork.Transaction);
 
-            return contaCorrente;
+            return new DeleteContaCorrenteResponse
+            {
+                IdContaCorrente = contaCorrente.IdContaCorrente,
+                Numero = contaCorrente.Numero,
+                Nome = contaCorrente.Nome,
+                Ativo = contaCorrente.Ativo
+            };
         }
 
-        public async void UpdateContCorrente(ContaCorrente contaCorrente)
+        public async Task<UpdateContaCorrenteResponse> UpdateContaCorrente(UpdateContaCorrenteRequest updateContaCorrenteRequest)
         {
             var query = "UPDATE contacorrente SET numero = @Numero, nome = @Nome, ativo = @Ativo WHERE idcontacorrente = @IdContaCorrente";
-            await _connection.ExecuteAsync(query, contaCorrente, _unitOfWork.Transaction);
+            await _connection.ExecuteAsync(query, updateContaCorrenteRequest, _unitOfWork.Transaction);
+
+            return new UpdateContaCorrenteResponse
+            {
+                IdContaCorrente = updateContaCorrenteRequest.IdContaCorrente,
+                Numero = updateContaCorrenteRequest.Numero,
+                Nome = updateContaCorrenteRequest.Nome,
+                Ativo = updateContaCorrenteRequest.Ativo,
+            };
         }
     }
 }

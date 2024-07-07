@@ -29,9 +29,10 @@ namespace Questao5.Infrastructure.Services.Controllers
         /// <param name="idContaCorrente"></param>
         /// <returns>Retorna a consulta do saldo</returns>
         /// <remarks>
-        /// Exemplo:
-        /// Get /ConsultarSaldo
-        /// idContaCorrente=B6BAFC09 -6967-ED11-A567-055DFA4A16C9
+        /// Sample request:
+        /// 
+        ///     Get /ConsultarSaldo
+        ///     idContaCorrente=B6BAFC09 -6967-ED11-A567-055DFA4A16C9
         /// </remarks>
         /// <response code="200">Retorna o saldo da conta corrente</response>
         /// <response code="400">INVALID_ACCOUNT - conta corrente nula ou conta corrente desativada</response>
